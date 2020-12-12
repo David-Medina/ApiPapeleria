@@ -9,7 +9,7 @@ namespace ApiPapeleria.Models
     {
         public int IdTicket { set; get; }
         public string FechaCompra { set; get; }
-        public int Total { set; get; }
+        public float Total { set; get; }
         public int idUsuario { set; get; }
         public string Usuario { set; get; }
     }

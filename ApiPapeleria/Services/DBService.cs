@@ -1217,23 +1217,32 @@ namespace ApiPapeleria.Services
                     commado.Parameters.Add(st_parametro_error);
                     commado.Parameters.Add(st_parametro_idout);
                     await commado.ExecuteNonQueryAsync();
-                    var productos = Newtonsoft.Json.JsonConvert.DeserializeObject<ListaProducto>(st_parametro_idout.Value.ToString());
-
-                    
+                    //var productos = Newtonsoft.Json.JsonConvert.DeserializeObject<ListaProducto>(st_parametro_idout.Value.ToString());
 
 
 
-                    st_parametro_idproducto.Value = st_parametro_idout;
+                    var id_productos = st_parametro_idout.SqlValue.ToString();
+                    List<int> productos_lista = new List<int>();
+                    int temp = 0;
+                    for (int i = 0; i < id_productos.Length; i++)
+                    {
+                        if (Char.IsDigit(id_productos[i]))
+                        {
+                            temp = int.Parse(id_productos[i].ToString());
+                            productos_lista.Add(temp);
+                        }
+                    }
                     string sql_quit = $"quitar_cantidad";
                     SqlCommand commado_quit = new SqlCommand(sql_quit, _connection);
                     commado_quit.CommandType = System.Data.CommandType.StoredProcedure;
                     commado_quit.Parameters.Add(st_parametro_idproducto);
                     commado_quit.Parameters.Add(st_parametro_mensajequitar);
                     commado_quit.Parameters.Add(st_parametro_errorquitar);
-                    await commado.ExecuteNonQueryAsync();
-                    //for(int i = 0; i <)
-
-
+                    for (int i = 0; i <productos_lista.Count(); i++)
+                    {
+                        st_parametro_idproducto.Value = productos_lista[i];
+                        await commado_quit.ExecuteNonQueryAsync();
+                    }
                 }
 
             }
@@ -1250,10 +1259,11 @@ namespace ApiPapeleria.Services
 
         }
 
-        public async Task<ResponseBase<bool>> GetReporte()
+        public async Task<ResponseBase<IEnumerable<Ticket>>> GetReporte()
         {
 
             var ticket = new Ticket();
+            var lista_ticket = new List<Ticket>();
             var st_parametro_error = new SqlParameter("@error", System.Data.SqlDbType.Bit);
             st_parametro_error.Direction = System.Data.ParameterDirection.Output;
 
@@ -1279,8 +1289,9 @@ namespace ApiPapeleria.Services
                         ticket = new Ticket();
                         ticket.IdTicket = int.Parse(reader["IdTicket"].ToString());
                         ticket.FechaCompra = reader["FechaCompra"].ToString();
-                        ticket.Total = int.Parse(reader["Total"].ToString());
+                        ticket.Total = float.Parse(reader["Total"].ToString());
                         ticket.idUsuario = int.Parse(reader["Idusuario"].ToString());
+                        lista_ticket.Add(ticket);
                     }
 
                 }
@@ -1288,14 +1299,14 @@ namespace ApiPapeleria.Services
             }
             catch (Exception e)
             {
-                return new ResponseBase<bool> { TieneResultado = false, Mensaje = "Error Interno de Api", Modelo = false };
+                return new ResponseBase<IEnumerable<Ticket>> { TieneResultado = false, Mensaje = "Error Interno de Api", Modelo = null };
             }
             finally
             {
                 _connection.Close();
             }
 
-            return new ResponseBase<bool> { TieneResultado = (bool)st_parametro_error.Value, Mensaje = st_parametro_mensaje.Value.ToString(), Modelo = true };
+            return new ResponseBase<IEnumerable<Ticket>> { TieneResultado = (bool)st_parametro_error.Value, Mensaje = st_parametro_mensaje.Value.ToString(), Modelo = lista_ticket };
 
         }
 

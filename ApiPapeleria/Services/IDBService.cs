@@ -44,6 +44,6 @@ namespace ApiPapeleria.Services
         //Productos
         Task<ResponseBase<int>> QuitarProductos(int idticket);
 
-        Task<ResponseBase<bool>> GetReporte();
+        Task<ResponseBase<IEnumerable<Ticket>>> GetReporte();
     }
 }
